@@ -1,6 +1,3 @@
-//
-// Created by rodion on 02.12.2021.
-//
 
 #ifndef CSVPARCER_CSVPARSER_H
 #define CSVPARCER_CSVPARSER_H
@@ -11,6 +8,7 @@
 #include <vector>
 #include <sstream>
 
+
 template<class ...Args>
 class CSVParser {
 public:
@@ -20,59 +18,54 @@ private:
     std::ifstream &input;
     Tuple_line current_line_tuple;
 
-
-         uint current_line=-1;
-         uint current_column=0;
-         bool file_finish = false;
-
+    uint current_line = -1;
+    uint current_column = 0;
+    bool file_finish = false;
 
     char column_delimiter = ',';
-
 
 public:
     explicit CSVParser(std::ifstream &file) : input(file) {
     }
-    virtual void converting(int &value, std::string &s_value,uint column) {
-        current_column=column;
-        try { value = std::stoi(s_value);}
-        catch (std::invalid_argument& invalid_argument){
-            throw std::invalid_argument(invalid_argument.what()+
-            std::string (" : int = \"")+
-            s_value+std::string("\" ?"));
+
+    virtual void converting(int &value, std::string &s_value, uint column) {
+        current_column = column;
+        try { value = std::stoi(s_value); }
+        catch (std::invalid_argument &invalid_argument) {
+            throw std::invalid_argument(invalid_argument.what() +
+                                        std::string(" : int = \"") +
+                                        s_value + std::string("\" ?"));
         }
 
     }
 
-    virtual void converting(std::string &value, std::string &s_value,uint column) {
-        current_column=column;
-        try {  value = s_value;}
-        catch (std::invalid_argument& invalid_argument){
-            throw std::invalid_argument(invalid_argument.what()+
-                                        std::string (" : string = \"")+
-                                        s_value+std::string("\" ?"));
+    virtual void converting(std::string &value, std::string &s_value, uint column) {
+        current_column = column;
+        try { value = s_value; }
+        catch (std::invalid_argument &invalid_argument) {
+            throw std::invalid_argument(invalid_argument.what() +
+                                        std::string(" : string = \"") +
+                                        s_value + std::string("\" ?"));
         }
 
     }
 
-    virtual void converting(double &value, std::string &s_value,uint column) {
-        current_column=column;
-        try {  value = std::stod(s_value);}
-        catch (std::invalid_argument& invalid_argument){
-            throw std::invalid_argument(invalid_argument.what()+
-                                        std::string (" : double = \"")+
-                                        s_value+std::string("\" ?"));
+    virtual void converting(double &value, std::string &s_value, uint column) {
+        current_column = column;
+        try { value = std::stod(s_value); }
+        catch (std::invalid_argument &invalid_argument) {
+            throw std::invalid_argument(invalid_argument.what() +
+                                        std::string(" : double = \"") +
+                                        s_value + std::string("\" ?"));
         }
-
-
     }
 
 
     template<class Tuple, std::size_t... Is>
     void for_each_tuple_impl(Tuple &t, std::vector<std::string> &arr,
                              std::index_sequence<Is...>) {
-        (converting(std::get<Is>(t), arr[Is],Is), ...);
+        (converting(std::get<Is>(t), arr[Is], Is), ...);
     }
-
 
     void for_each_tuple(std::tuple<Args...> &t, std::vector<std::string> &arr) {
         for_each_tuple_impl(t, arr, std::index_sequence_for<Args...>{});
@@ -101,15 +94,16 @@ public:
                 result.push_back("");
 
             }
-            if (result.size()!= sizeof...(Args)){
-                throw std::invalid_argument("Data mismatch in line(must "+ std::to_string(sizeof...(Args))+" arg): \""+line+"\"");
+            if (result.size() != sizeof...(Args)) {
+                throw std::invalid_argument(
+                        "Data mismatch in line(must " + std::to_string(sizeof...(Args)) + " arg): \"" + line + "\"");
             }
             try {
                 set_tuple_args(result);
             }
-            catch (std::exception& exception){
-                throw std::invalid_argument("Type mismatch in "+std::to_string(current_line)+" line , "
-                +std::to_string(current_column)+" column\n"+exception.what());
+            catch (std::exception &exception) {
+                throw std::invalid_argument("Type mismatch in " + std::to_string(current_line) + " line , "
+                                            + std::to_string(current_column) + " column\n" + exception.what());
             }
 
         } else {
@@ -125,8 +119,21 @@ public:
     virtual Tuple_line &get_current_line_tuple() {
         return current_line_tuple;
     }
-    virtual ~CSVParser(){
 
+    virtual void restart() {
+        if (input.is_open()) {
+            input.seekg(0);
+            file_finish = false;
+            current_column = 0;
+            current_line = -1;
+        }
+
+
+    }
+
+    virtual ~CSVParser() {
+        if (input.is_open())
+            input.close();
     }
 
 };

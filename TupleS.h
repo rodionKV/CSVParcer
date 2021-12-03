@@ -1,11 +1,10 @@
-//
-// Created by rodion on 02.12.2021.
-//
 
 #ifndef CSVPARCER_TUPLES_H
 #define CSVPARCER_TUPLES_H
+
 #include <iostream>
 #include <tuple>
+
 template<class Ch, class Tr, class Tuple, std::size_t... Is>
 void print_tuple_impl(std::basic_ostream<Ch, Tr> &os,
                       const Tuple &t,
